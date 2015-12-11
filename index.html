@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Introduction to Data Science by Anderson-Lab</title>
+    <title>Wells Fargo Analytics Competition by kayat30</title>
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-dark.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -17,19 +17,19 @@
   <body>
 
       <header>
-        <h1>Introduction to Data Science</h1>
+        <h1>Wells Fargo Analytics Competition</h1>
         <p>DATA 101 - Paul Anderson @ CofC</p>
       </header>
 
       <div id="banner">
         <span id="logo"></span>
 
-        <a href="https://github.com/Anderson-Lab/data-101-fall-2015" class="button fork"><strong>View On GitHub</strong></a>
+        <a href="https://github.com/kayat30/data-101-fall-2015" class="button fork"><strong>View On GitHub</strong></a>
         <div class="downloads">
           <span>Downloads:</span>
           <ul>
-            <li><a href="https://github.com/Anderson-Lab/data-101-fall-2015/zipball/master" class="button">ZIP</a></li>
-            <li><a href="https://github.com/Anderson-Lab/data-101-fall-2015/tarball/master" class="button">TAR</a></li>
+            <li><a href="https://github.com/kayat30/data-101-fall-2015/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/kayat30/data-101-fall-2015/tarball/master" class="button">TAR</a></li>
           </ul>
         </div>
       </div><!-- end banner -->
@@ -40,7 +40,79 @@
       </nav>
       <section>
         <h1>
-<a id="data-101-fall-2015" class="anchor" href="#data-101-fall-2015" aria-hidden="true"><span class="octicon octicon-link"></span></a>DATA 101, Fall 2015</h1>
+<a id="wells-fargo-analytics-competition" class="anchor" href="#wells-fargo-analytics-competition" aria-hidden="true"><span class="octicon octicon-link"></span></a>Wells Fargo Analytics Competition</h1>
+
+<h2>
+<a id="background" class="anchor" href="#background" aria-hidden="true"><span class="octicon octicon-link"></span></a>Background</h2>
+
+<p>Wells Fargo challenged data scientists to extract information from social media posts mentioning banks. They provided tweets and Facebook posts that included references to four banks (BankA, BankB, BankC and BankD) in order to determine what financial and bank topics consumers posted about in social media. They were also interested in the reasons consumers post about banks and whether the substance of the posts is consistent across the industry or isolated to individual banks. Specifically, they challenged data scientists to develop an approach that identifies, classifies, and extracts the underlying drivers in social media data. </p>
+
+<p><a href="http://innercircle.engineering.asu.edu/wp-content/uploads/2015/11/Wells-Fargo-Campus-Analytic-Challenge-Information.pdf">Competition Summary</a></p>
+
+<h2>
+<a id="approach" class="anchor" href="#approach" aria-hidden="true"><span class="octicon octicon-link"></span></a>Approach</h2>
+
+<h3>
+<a id="the-data" class="anchor" href="#the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Data</h3>
+
+<p><img alt=""></p>
+
+<p>Content of posts
+<img alt=""></p>
+
+<p>The first step in the analytic process was to clean the data. </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-v">df</span> <span class="pl-k">=</span> read.table(<span class="pl-s"><span class="pl-pds">'</span>dataset.txt<span class="pl-pds">'</span></span>,<span class="pl-v">sep</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>|<span class="pl-pds">"</span></span>,<span class="pl-v">header</span><span class="pl-k">=</span><span class="pl-c1">T</span>)
+<span class="pl-smi">df</span><span class="pl-k">$</span><span class="pl-v">FullText</span> <span class="pl-k">=</span> as.character(<span class="pl-smi">df</span><span class="pl-k">$</span><span class="pl-smi">FullText</span>)
+
+<span class="pl-c"># Remove non-ascii characters</span>
+<span class="pl-v">df.texts.clean</span> <span class="pl-k">=</span> as.data.frame(iconv(<span class="pl-smi">df</span><span class="pl-k">$</span><span class="pl-smi">FullText</span>, <span class="pl-s"><span class="pl-pds">"</span>latin1<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>ASCII<span class="pl-pds">"</span></span>, <span class="pl-v">sub</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>))
+colnames(<span class="pl-smi">df.texts.clean</span>) <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>FullText<span class="pl-pds">'</span></span>
+
+<span class="pl-smi">df</span><span class="pl-k">$</span><span class="pl-v">FullText</span> <span class="pl-k">=</span> <span class="pl-smi">df.texts.clean</span><span class="pl-k">$</span><span class="pl-smi">FullText</span>
+
+<span class="pl-c">#test 10,000 texts: good sample size</span>
+<span class="pl-v">idx.10000</span> <span class="pl-k">=</span> sample(<span class="pl-c1">1</span><span class="pl-k">:</span>nrow(<span class="pl-smi">df</span>),<span class="pl-c1">10000</span>)
+<span class="pl-v">df.10000</span> <span class="pl-k">=</span> <span class="pl-smi">df</span>[<span class="pl-smi">idx.10000</span>,]
+
+<span class="pl-v">df.entire</span> <span class="pl-k">=</span> <span class="pl-smi">df</span>
+<span class="pl-v">df</span> <span class="pl-k">=</span> <span class="pl-smi">df.10000</span>
+
+<span class="pl-c"># Load using the tm library</span>
+library(<span class="pl-smi">tm</span>) 
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> Corpus(DataframeSource(as.data.frame(<span class="pl-smi">df</span>[,<span class="pl-c1">6</span>])))   
+
+<span class="pl-c">#REMEMBER: IT MATTERS THE ORDER IN WHICH TM_MAP EXPRESSIONS ARE RUN</span>
+library(<span class="pl-smi">rJava</span>)
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, content_transformer(<span class="pl-smi">tolower</span>)) <span class="pl-c"># convert to lowercase first</span>
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, <span class="pl-smi">removeWords</span>, stopwords(<span class="pl-s"><span class="pl-pds">'</span>english<span class="pl-pds">'</span></span>))
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, <span class="pl-smi">removeWords</span>, stopwords(<span class="pl-v">kind</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>SMART<span class="pl-pds">"</span></span>))
+<span class="pl-c">#metaData/recurrent words</span>
+<span class="pl-smi">myMeta</span> <span class="pl-k">&lt;-</span> c(<span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>bank<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>banka<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>bankb<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>bankc<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>bankd<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>banke<span class="pl-pds">"</span></span>,
+            <span class="pl-s"><span class="pl-pds">"</span>internet<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>https<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>rettwit<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>twit_hndl_banka<span class="pl-pds">"</span></span>,
+            <span class="pl-s"><span class="pl-pds">"</span>twit_hndl_bankb<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>twit_hndl_bankc<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>twit_hndl_bankd<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>phone<span class="pl-pds">"</span></span>,
+            <span class="pl-s"><span class="pl-pds">"</span>dirmsg<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>dir_msg<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>street<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>name_resp<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>bankds<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>and<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>for<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>the<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>you<span class="pl-pds">"</span></span>,
+            <span class="pl-s"><span class="pl-pds">"</span>twithndlbanka<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>dirmsg<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>ret_twit<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>twit_hndl<span class="pl-pds">"</span></span>)
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, <span class="pl-smi">removeWords</span>, <span class="pl-smi">myMeta</span>)
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, <span class="pl-smi">stripWhitespace</span>)
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, <span class="pl-smi">removePunctuation</span>)
+<span class="pl-smi">docs</span> <span class="pl-k">&lt;-</span> tm_map(<span class="pl-smi">docs</span>, <span class="pl-smi">PlainTextDocument</span>)
+
+<span class="pl-smi">new.df</span> <span class="pl-k">&lt;-</span><span class="pl-k">data.frame</span>(<span class="pl-v">text</span><span class="pl-k">=</span>unlist(sapply(<span class="pl-smi">docs</span>, `[[`, <span class="pl-s"><span class="pl-pds">"</span>content<span class="pl-pds">"</span></span>)), <span class="pl-v">stringsAsFactors</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)</pre></div>
+
+<p>Each submission will contain a written report with the following sections:
+• Deliverable A: Describe your Approach and Methodology, including a visual representation of analytic process flow
+• Deliverable B: Discuss the data and its relationship to social conversation drivers
+• Deliverable C: Document your code and reference the analytic process flow-diagram from deliverable A
+• Deliverable D: Create list of topics and substance you found
+• Deliverable E: Create narrative of insights supported by quantitative results (should include graphs or charts)</p>
+
+<h2>
+<a id="conclusions" class="anchor" href="#conclusions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusions</h2>
+
+<div class="highlight highlight-source-r"><pre>loading(<span class="pl-smi">texts</span>)</pre></div>
+
+<p><img src="http://i.imgur.com/oGyY7Zo.jpg" alt=""></p>
 
 <h2>
 <a id="important-links" class="anchor" href="#important-links" aria-hidden="true"><span class="octicon octicon-link"></span></a>Important Links</h2>
@@ -189,7 +261,7 @@ The Anderson Data Science Research Lab specializes in applying data mining, mach
 </p>
       </section>
       <footer>
-        <p>Project maintained by <a href="https://github.com/Anderson-Lab">Anderson-Lab</a></p>
+        <p>Project maintained by <a href="https://github.com/kayat30">kayat30</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
       </footer>
     </div>
